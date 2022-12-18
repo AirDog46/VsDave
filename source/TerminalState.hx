@@ -17,96 +17,60 @@ import flixel.system.FlxSound;
 
 using StringTools;
 
-import PlayState; //why the hell did this work LMAO.
-
+import PlayState; // why the hell did this work LMAO.
 
 class TerminalState extends MusicBeatState
 {
+	// dont just yoink this code and use it in your own mod. this includes you, psych engine porters.
+	// if you ingore this message and use it anyway, atleast give credit.
+	public var curCommand:String = "";
+	public var previousText:String = LanguageManager.getTerminalString("term_introduction");
+	public var displayText:FlxText;
 
-    //dont just yoink this code and use it in your own mod. this includes you, psych engine porters.
-    //if you ingore this message and use it anyway, atleast give credit.
+	var expungedActivated:Bool = false;
 
-    public var curCommand:String = "";
-    public var previousText:String = LanguageManager.getTerminalString("term_introduction");
-    public var displayText:FlxText;
-    var expungedActivated:Bool = false;
-    public var CommandList:Array<TerminalCommand> = new Array<TerminalCommand>();
-    public var typeSound:FlxSound;
+	public var CommandList:Array<TerminalCommand> = new Array<TerminalCommand>();
+	public var typeSound:FlxSound;
 
-    // [BAD PERSON] was too lazy to finish this lol.
-    var unformattedSymbols:Array<String> =
-    [
-        "period",
-        "backslash",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-        "zero",
-        "shift",
-        "semicolon",
-        "alt",
-        "lbracket",
-        "rbracket",
-        "comma",
-        "plus"
-    ];
+	// [BAD PERSON] was too lazy to finish this lol.
+	var unformattedSymbols:Array<String> = [
+		"period", "backslash", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "zero", "shift", "semicolon", "alt", "lbracket",
+		"rbracket", "comma", "plus"
+	];
 
-    var formattedSymbols:Array<String> =
-    [
-        ".",
-        "/",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "0",
-        "",
-        ";",
-        "",
-        "[",
-        "]",
-        ",",
-        "="
-    ];
-    public var fakeDisplayGroup:FlxTypedGroup<FlxText> = new FlxTypedGroup<FlxText>();
-    public var expungedTimer:FlxTimer;
-    var curExpungedAlpha:Float = 0;
+	var formattedSymbols:Array<String> = [
+		".", "/", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "", ";", "", "[", "]", ",", "="
+	];
 
-    override public function create():Void
-    {
-        Main.fps.visible = false;
-        PlayState.isStoryMode = false;
-        displayText = new FlxText(0, 0, FlxG.width, previousText, 32);
+	public var fakeDisplayGroup:FlxTypedGroup<FlxText> = new FlxTypedGroup<FlxText>();
+	public var expungedTimer:FlxTimer;
+
+	var curExpungedAlpha:Float = 0;
+
+	override public function create():Void
+	{
+		Main.fps.visible = false;
+		PlayState.isStoryMode = false;
+		displayText = new FlxText(0, 0, FlxG.width, previousText, 32);
 		displayText.setFormat(Paths.font("fixedsys.ttf"), 16);
-        displayText.size *= 2;
+		displayText.size *= 2;
 		displayText.antialiasing = false;
-        typeSound = FlxG.sound.load(Paths.sound('terminal_space'), 0.6);
-        FlxG.sound.playMusic(Paths.music('TheAmbience','shared'), 0.7);
+		typeSound = FlxG.sound.load(Paths.sound('terminal_space'), 0.6);
+		FlxG.sound.playMusic(Paths.music('TheAmbience', 'shared'), 0.7);
 
-        CommandList.push(new TerminalCommand("help", LanguageManager.getTerminalString("term_help_ins"), function(arguments:Array<String>)
-        {
-            UpdatePreviousText(false); //resets the text
-            var helpText:String = "";
-            for (v in CommandList)
-            {
-                if (v.showInHelp)
-                {
-                    helpText += (v.commandName + " - " + v.commandHelp + "\n");
-                }
-            }
-            UpdateText("\n" + helpText);
-        }));
+		CommandList.push(new TerminalCommand("help", LanguageManager.getTerminalString("term_help_ins"), function(arguments:Array<String>)
+		{
+			UpdatePreviousText(false); // resets the text
+			var helpText:String = "";
+			for (v in CommandList)
+			{
+				if (v.showInHelp)
+				{
+					helpText += (v.commandName + " - " + v.commandHelp + "\n");
+				}
+			}
+			UpdateText("\n" + helpText);
+		}));
 
         CommandList.push(new TerminalCommand("characters", LanguageManager.getTerminalString("term_char_ins"), function(arguments:Array<String>)
         {
@@ -335,132 +299,133 @@ class TerminalState extends MusicBeatState
         CommandList.push(new TerminalCommand("secret mod leak", LanguageManager.getTerminalString("term_leak_ins"), function(arguments:Array<String>)
         {
 			MathGameState.accessThroughTerminal = true;
-            FlxG.switchState(new MathGameState());
-        }, false, true));
+			FlxG.switchState(new MathGameState());
+		}, false, true));
 
-        add(displayText);
+		add(displayText);
 
-        super.create();
-    }
+		super.create();
+	}
 
-    public function UpdateText(val:String)
-    {
-        displayText.text = previousText + val;
-    }
+	public function UpdateText(val:String)
+	{
+		displayText.text = previousText + val;
+	}
 
-    public function UpdatePreviousText(reset:Bool)
-    {
-        previousText = displayText.text + (reset ? "\n> " : "");
-        displayText.text = previousText;
-        curCommand = "";
-        var finalthing:String = "";
-        var splits:Array<String> = displayText.text.split("\n");
-        if (splits.length <= 22)
-        {
-            return;
-        }
-        var split_end:Int = Math.round(Math.max(splits.length - 22,0));
-        for (i in split_end...splits.length)
-        {
-            var split:String = splits[i];
-            if (split == "")
-            {
-                finalthing = finalthing + "\n";
-            }
-            else
-            {
-                finalthing = finalthing + split + (i < (splits.length - 1) ? "\n" : "");
-            }
-        }
-        previousText = finalthing;
-        displayText.text = finalthing;
-        if(displayText.height > 720)
-          displayText.y = 720 - displayText.height;
-    }
+	public function UpdatePreviousText(reset:Bool)
+	{
+		previousText = displayText.text + (reset ? "\n> " : "");
+		displayText.text = previousText;
+		curCommand = "";
+		var finalthing:String = "";
+		var splits:Array<String> = displayText.text.split("\n");
+		if (splits.length <= 22)
+		{
+			return;
+		}
+		var split_end:Int = Math.round(Math.max(splits.length - 22, 0));
+		for (i in split_end...splits.length)
+		{
+			var split:String = splits[i];
+			if (split == "")
+			{
+				finalthing = finalthing + "\n";
+			}
+			else
+			{
+				finalthing = finalthing + split + (i < (splits.length - 1) ? "\n" : "");
+			}
+		}
+		previousText = finalthing;
+		displayText.text = finalthing;
+		if (displayText.height > 720)
+			displayText.y = 720 - displayText.height;
+	}
 
-    override function update(elapsed:Float):Void
-    {
-        super.update(elapsed);
-        
-        if (expungedActivated)
-        {
-            curExpungedAlpha = Math.min(curExpungedAlpha + elapsed, 1);
-            if (fakeDisplayGroup.exists && fakeDisplayGroup != null)
-            {
-                for (text in fakeDisplayGroup.members)
-                {
-                    text.alpha = curExpungedAlpha;
-                }
-            }
-            return;
-        }
-        var keyJustPressed:FlxKey = cast(FlxG.keys.firstJustPressed(), FlxKey);
+	override function update(elapsed:Float):Void
+	{
+		super.update(elapsed);
 
-        if (keyJustPressed == FlxKey.ENTER)
-        {
-            var calledFunc:Bool = false;
-            var arguments:Array<String> = curCommand.split(" ");
-            for (v in CommandList)
-            {
-                if (v.commandName == arguments[0] || (v.commandName == curCommand && v.oneCommand)) //argument 0 should be the actual command at the moment
-                {
-                    arguments.shift();
-                    calledFunc = true;
-                    v.FuncToCall(arguments);
-                    break;
-                }
-            }
-            if (!calledFunc)
-            {
-                UpdatePreviousText(false); //resets the text
-                UpdateText(LanguageManager.getTerminalString("term_unknown") + arguments[0] + "\"");
-            }
-            UpdatePreviousText(true);
-            return;
-        }
+		if (expungedActivated)
+		{
+			curExpungedAlpha = Math.min(curExpungedAlpha + elapsed, 1);
+			if (fakeDisplayGroup.exists && fakeDisplayGroup != null)
+			{
+				for (text in fakeDisplayGroup.members)
+				{
+					text.alpha = curExpungedAlpha;
+				}
+			}
+			return;
+		}
+		var keyJustPressed:FlxKey = cast(FlxG.keys.firstJustPressed(), FlxKey);
 
-        if (keyJustPressed != FlxKey.NONE)
-        {
-            if (keyJustPressed == FlxKey.BACKSPACE)
-            {
-                curCommand = curCommand.substr(0,curCommand.length - 1);
-                typeSound.play();
-            }
-            else if (keyJustPressed == FlxKey.SPACE)
-            {
-                curCommand += " ";
-                typeSound.play();
-            }
-            else
-            {
-                var toShow:String = keyJustPressed.toString().toLowerCase();
-                for (i in 0...unformattedSymbols.length)
-                {
-                    if (toShow == unformattedSymbols[i])
-                    {
-                        toShow = formattedSymbols[i];
-                        break;
-                    }
-                }
-                if (FlxG.keys.pressed.SHIFT)
-                {
-                    toShow = toShow.toUpperCase();
-                }
-                curCommand += toShow;
-                typeSound.play();
-            }
-            UpdateText(curCommand);
-        }
-        if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.BACKSPACE)
-        {
-            curCommand = "";
-        }
-        if (FlxG.keys.justPressed.ESCAPE)
-        {
-            Main.fps.visible = !FlxG.save.data.disableFps;
-            FlxG.switchState(new MainMenuState());
-        }
-    }
+		if (keyJustPressed == FlxKey.ENTER)
+		{
+			var calledFunc:Bool = false;
+			var arguments:Array<String> = curCommand.split(" ");
+			for (v in CommandList)
+			{
+				if (v.commandName == arguments[0]
+					|| (v.commandName == curCommand && v.oneCommand)) // argument 0 should be the actual command at the moment
+				{
+					arguments.shift();
+					calledFunc = true;
+					v.FuncToCall(arguments);
+					break;
+				}
+			}
+			if (!calledFunc)
+			{
+				UpdatePreviousText(false); // resets the text
+				UpdateText(LanguageManager.getTerminalString("term_unknown") + arguments[0] + "\"");
+			}
+			UpdatePreviousText(true);
+			return;
+		}
+
+		if (keyJustPressed != FlxKey.NONE)
+		{
+			if (keyJustPressed == FlxKey.BACKSPACE)
+			{
+				curCommand = curCommand.substr(0, curCommand.length - 1);
+				typeSound.play();
+			}
+			else if (keyJustPressed == FlxKey.SPACE)
+			{
+				curCommand += " ";
+				typeSound.play();
+			}
+			else
+			{
+				var toShow:String = keyJustPressed.toString().toLowerCase();
+				for (i in 0...unformattedSymbols.length)
+				{
+					if (toShow == unformattedSymbols[i])
+					{
+						toShow = formattedSymbols[i];
+						break;
+					}
+				}
+				if (FlxG.keys.pressed.SHIFT)
+				{
+					toShow = toShow.toUpperCase();
+				}
+				curCommand += toShow;
+				typeSound.play();
+			}
+			UpdateText(curCommand);
+		}
+		if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.BACKSPACE)
+		{
+			curCommand = "";
+		}
+		if (FlxG.keys.justPressed.ESCAPE)
+		{
+			Main.fps.visible = !FlxG.save.data.disableFps;
+			FlxG.switchState(new MainMenuState());
+		}
+	}
 
 	function expungedReignStarts()
 	{
@@ -504,44 +469,47 @@ class TerminalState extends MusicBeatState
 		}
 		#end
 
-        FlxG.camera.follow(camFollow, 1);
+		FlxG.camera.follow(camFollow, 1);
 
-        expungedActivated = true;
-        expungedTimer = new FlxTimer().start(FlxG.elapsed * 2, function(timer:FlxTimer)
-        {
-            var lastFakeDisplay = fakeDisplayGroup.members[i - 1];
-            var fakeDisplay:FlxText = new FlxText(0, 0, FlxG.width, "> " + expungedLines[new FlxRandom().int(0, expungedLines.length - 1)], 19);
-            fakeDisplay.setFormat(Paths.font("fixedsys.ttf"), 16);
-            fakeDisplay.size *= 2;
-            fakeDisplay.antialiasing = false;
+		expungedActivated = true;
+		expungedTimer = new FlxTimer().start(FlxG.elapsed * 2, function(timer:FlxTimer)
+		{
+			var lastFakeDisplay = fakeDisplayGroup.members[i - 1];
+			var fakeDisplay:FlxText = new FlxText(0, 0, FlxG.width, "> " + expungedLines[new FlxRandom().int(0, expungedLines.length - 1)], 19);
+			fakeDisplay.setFormat(Paths.font("fixedsys.ttf"), 16);
+			fakeDisplay.size *= 2;
+			fakeDisplay.antialiasing = false;
 
-            var yValue:Float = lastFakeDisplay == null ? displayText.y + displayText.textField.textHeight : lastFakeDisplay.y + lastFakeDisplay.textField.textHeight;
-            fakeDisplay.y = yValue;
-            fakeDisplayGroup.add(fakeDisplay);
-            if (fakeDisplay.y > FlxG.height)
-            {
-                camFollow.y = fakeDisplay.y - FlxG.height / 2;
-            }
-            i++;
-        }, FlxMath.MAX_VALUE_INT);
-        
-        FlxG.sound.music.stop();
-        FlxG.sound.play(Paths.sound("expungedGrantedAccess", "preload"), function()
-        {
-            FlxTween.tween(glitch, {alpha: 0}, 1);
-            expungedTimer.cancel();
-            fakeDisplayGroup.clear();
+			var yValue:Float = lastFakeDisplay == null ? displayText.y + displayText.textField.textHeight : lastFakeDisplay.y
+				+ lastFakeDisplay.textField.textHeight;
+			fakeDisplay.y = yValue;
+			fakeDisplayGroup.add(fakeDisplay);
+			if (fakeDisplay.y > FlxG.height)
+			{
+				camFollow.y = fakeDisplay.y - FlxG.height / 2;
+			}
+			i++;
+		}, FlxMath.MAX_VALUE_INT);
 
-            var eye = new FlxSprite(0, 0).loadGraphic(Paths.image('mainMenu/eye'));
+		FlxG.sound.music.stop();
+		FlxG.sound.play(Paths.sound("expungedGrantedAccess", "preload"), function()
+		{
+			FlxTween.tween(glitch, {alpha: 0}, 1);
+			expungedTimer.cancel();
+			fakeDisplayGroup.clear();
+
+			var eye = new FlxSprite(0, 0).loadGraphic(Paths.image('mainMenu/eye'));
 			eye.screenCenter();
 			eye.antialiasing = false;
-            eye.alpha = 0;
+			eye.alpha = 0;
 			add(eye);
 
-            FlxTween.tween(eye, {alpha: 1}, 1, {onComplete: function(tween:FlxTween)
-            {
-                FlxTween.tween(eye, {alpha: 0}, 1);
-            }});
+			FlxTween.tween(eye, {alpha: 1}, 1, {
+				onComplete: function(tween:FlxTween)
+				{
+					FlxTween.tween(eye, {alpha: 0}, 1);
+				}
+			});
 			FlxG.sound.play(Paths.sound('iTrollYou', 'shared'), function()
 			{
 				new FlxTimer().start(1, function(timer:FlxTimer)
@@ -557,26 +525,24 @@ class TerminalState extends MusicBeatState
 					System.exit(0);
 				});
 			});
-        });
-    }
+		});
+	}
 }
-
 
 class TerminalCommand
 {
-    public var commandName:String = "undefined";
-    public var commandHelp:String = "if you see this you are very homosexual and dumb."; //hey im not homosexual. kinda mean ngl
-    public var FuncToCall:Dynamic;
-    public var showInHelp:Bool;
-    public var oneCommand:Bool;
+	public var commandName:String = "undefined";
+	public var commandHelp:String = "if you see this you are very homosexual and dumb."; // hey im not homosexual. kinda mean ngl
+	public var FuncToCall:Dynamic;
+	public var showInHelp:Bool;
+	public var oneCommand:Bool;
 
-    public function new(name:String, help:String, func:Dynamic, showInHelp = true, oneCommand:Bool = false)
-    {
-        commandName = name;
-        commandHelp = help;
-        FuncToCall = func;
-        this.showInHelp = showInHelp;
-        this.oneCommand = oneCommand;
-    }
-
+	public function new(name:String, help:String, func:Dynamic, showInHelp = true, oneCommand:Bool = false)
+	{
+		commandName = name;
+		commandHelp = help;
+		FuncToCall = func;
+		this.showInHelp = showInHelp;
+		this.oneCommand = oneCommand;
+	}
 }
