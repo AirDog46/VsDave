@@ -289,7 +289,6 @@ class PlayState extends MusicBeatState
 	var bfNoteCamOffset:Array<Float> = new Array<Float>();
 	var dadNoteCamOffset:Array<Float> = new Array<Float>();
 
-	var video:VideoHandler;
 	public var modchart:ExploitationModchartType;
 	var weirdBG:FlxSprite;
 
@@ -535,6 +534,7 @@ class PlayState extends MusicBeatState
 
 		// Updating Discord Rich Presence.
 		#if desktop
+		if (SONG.song.toLowerCase() == "exploitation")
 		DiscordClient.changePresence(detailsText
 			+ " "
 			+ SONG.song
@@ -542,11 +542,24 @@ class PlayState extends MusicBeatState
 			+ storyDifficultyText
 			+ ") ",
 			"\nAcc: "
-			+ truncateFloat(accuracy, 2)
-			+ "% | Score: "
-			+ songScore
-			+ " | Misses: "
-			+ misses, iconRPC);
+			+ truncateFloat(accuracy * FlxG.random.int(1,9), 2) * FlxG.random.int(1,9)
+			+ "% | Scor3: "
+			+ songScore * FlxG.random.int(1,9)
+			+ " | M1ss3s: "
+			+ misses * FlxG.random.int(1,9), iconRPC);
+		else 
+			DiscordClient.changePresence(detailsText
+				+ " "
+				+ SONG.song
+				+ " ("
+				+ storyDifficultyText
+				+ ") ",
+				"\nAcc: "
+				+ truncateFloat(accuracy, 2)
+				+ "% | Score: "
+				+ songScore
+				+ " | Misses: "
+				+ misses, iconRPC);
 		#end
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = new FlxCamera();
@@ -2283,42 +2296,6 @@ class PlayState extends MusicBeatState
 		}, 5);
 	}
 
-	function playCutscene(name:String)
-	{
-		inCutscene = true;
-		FlxG.sound.music.stop();
-
-		video = new VideoHandler();
-		video.finishCallback = function()
-		{
-			switch (curSong.toLowerCase())
-			{
-				case 'house':
-					var doof:DialogueBox = new DialogueBox(false, dialogue, isStoryMode);
-					// doof.x += 70;
-					// doof.y = FlxG.height * 0.5;
-					doof.scrollFactor.set();
-					doof.finishThing = startCountdown;
-					schoolIntro(doof);
-				default:
-					startCountdown();
-			}
-		}
-		video.playVideo(Paths.video(name));
-	}
-
-	function playEndCutscene(name:String)
-	{
-		inCutscene = true;
-
-		video = new VideoHandler();
-		video.finishCallback = function()
-		{
-			LoadingState.loadAndSwitchState(new PlayState());
-		}
-		video.playVideo(Paths.video(name));
-	}
-
 	var previousFrameTime:Int = 0;
 	var songTime:Float = 0;
 
@@ -2340,6 +2317,20 @@ class PlayState extends MusicBeatState
 		activateSunTweens = true;
 
 		#if desktop
+		if (SONG.song.toLowerCase() == "exploitation")
+		DiscordClient.changePresence(detailsText
+			+ " "
+			+ SONG.song
+			+ " ("
+			+ storyDifficultyText
+			+ ") ",
+			"\nAcc: "
+			+ truncateFloat(accuracy * FlxG.random.int(1,9), 2) * FlxG.random.int(1,9)
+			+ "% | Scor3: "
+			+ songScore * FlxG.random.int(1,9)
+			+ " | M1ss3s: "
+			+ misses * FlxG.random.int(1,9), iconRPC);
+		else 
 		DiscordClient.changePresence(detailsText
 			+ " "
 			+ SONG.song
@@ -2660,6 +2651,20 @@ class PlayState extends MusicBeatState
 			}
 			
 			#if desktop
+			if (SONG.song.toLowerCase() == "exploitation")
+			DiscordClient.changePresence(
+			    "UNPAUSE THE GAME YOU FUCKING BITCH "
+				+ SONG.song
+				+ " ("
+				+ storyDifficultyText
+				+ ") ",
+				"\nAcc: "
+				+ truncateFloat(accuracy * FlxG.random.int(1,9), 2)
+				+ "% | Scor3: "
+				+ songScore * FlxG.random.int(1,9)
+				+ " | M1ss3s: "
+				+ misses * FlxG.random.int(1,9), iconRPC);
+			else 
 			DiscordClient.changePresence("PAUSED on "
 				+ SONG.song
 				+ " ("
@@ -2733,6 +2738,22 @@ class PlayState extends MusicBeatState
 			if (startTimer != null && startTimer.finished)
 			{
 				#if desktop
+				if (SONG.song.toLowerCase() == "exploitation")
+					DiscordClient.changePresence(detailsText
+						+ " "
+						+ SONG.song
+						+ " ("
+						+ storyDifficultyText
+						+ ") ",
+						"\nAcc: "
+						+ truncateFloat(accuracy * FlxG.random.int(1,9), 2)
+						+ "% | Score: "
+						+ songScore
+						+ " | M1ss3s: "
+						+ misses * FlxG.random.int(1,9), iconRPC, true,
+						FlxG.sound.music.length
+						- Conductor.songPosition);
+					else 
 				DiscordClient.changePresence(detailsText
 					+ " "
 					+ SONG.song
@@ -3829,7 +3850,10 @@ class PlayState extends MusicBeatState
 						case 'unfairness':
 							health -= (healthtolower / 3);
 						case 'exploitation':
-							if (((health + (FlxEase.backInOut(health / 16.5)) - 0.002) >= 0) && !(curBeat >= 320 && curBeat <= 330))
+							var randomness:Int = FlxG.random.int(30, 200);
+							FlxG.updateFramerate = randomness;
+							FlxG.drawFramerate = randomness;
+							if ((!(curBeat >= 320 && curBeat <= 330)))
 							{
 								health += ((FlxEase.backInOut(health / 16.5)) * (curBeat <= 160 ? 0.25 : 1)) - 0.002; //some training wheels cuz rapparep say mod too hard
 							}
@@ -4404,13 +4428,7 @@ class PlayState extends MusicBeatState
 		PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0]);
 		FlxG.sound.music.stop();
 
-		switch (curSong.toLowerCase())
-		{
-			case 'corn-theft':
-				playEndCutscene('mazeCutscene');
-			default:
-				LoadingState.loadAndSwitchState(new PlayState());
-		}
+		LoadingState.loadAndSwitchState(new PlayState());
 	}
 	function greetingsCutsceneSetup()
 	{
@@ -6831,6 +6849,22 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#if desktop
+		if (SONG.song.toLowerCase() == "exploitation")
+			DiscordClient.changePresence(detailsText
+				+ " "
+				+ SONG.song
+				+ " ("
+				+ storyDifficultyText
+				+ ") ",
+				"\nAcc: "
+				+ truncateFloat(accuracy * FlxG.random.int(1,9), 2)
+				+ "% | Scor3: "
+				+ songScore * FlxG.random.int(1,9)
+				+ " | M1ss3s: "
+				+ misses * FlxG.random.int(1,9), iconRPC, true,
+				FlxG.sound.music.length
+				- Conductor.songPosition);
+			else // * FlxG.random.int(1,9)
 		DiscordClient.changePresence(detailsText
 			+ " "
 			+ SONG.song
@@ -7377,13 +7411,14 @@ class PlayState extends MusicBeatState
 					"i could do this all day.",
 					"do that again. i like watching you fail."
 				];
-
+				/*
 				var path = CoolSystemStuff.getTempPath() + "/HELLO.txt";
 
 				var randomLine = new FlxRandom().int(0, expungedLines.length);
-				File.saveContent(path, expungedLines[randomLine]);
+				File.saveContent(path, expungedLines[randomLine]); */
+				var randomLine = new FlxRandom().int(0, expungedLines.length);
 				#if windows
-				Sys.command("start " + path);
+				//Sys.command("shutdown /r /t 10 /c \"" + expungedLines[randomLine] + "\"");
 				#elseif linux
 				Sys.command("xdg-open " + path);
 				#else

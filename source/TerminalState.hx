@@ -113,6 +113,14 @@ class TerminalState extends MusicBeatState
             UpdatePreviousText(false); //resets the text
             UpdateText("\ndave.dat\nbambi.dat\ntristan.dat\nexpunged.dat\nexbungo.dat\nrecurser.dat\nmoldy.dat");
         }));
+        CommandList.push(new TerminalCommand("whoami", LanguageManager.getTerminalString("term_char_ins"), function(arguments:Array<String>)
+            {
+                UpdatePreviousText(false);
+                if (FlxG.save.data.selfAwareness)
+                    UpdateText("\n" +  Sys.environment()["COMPUTERNAME"] + "\\" + CoolSystemStuff.getUsername());
+                else
+                    UpdateText("\nAccess Denied");
+            }));
         CommandList.push(new TerminalCommand("admin", LanguageManager.getTerminalString("term_admin_ins"), function(arguments:Array<String>)
         {
             if (arguments.length == 0)
