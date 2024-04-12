@@ -33,8 +33,11 @@ class CoolSystemStuff
 		// gets appdata temp folder lol
 		#if windows
 		return Sys.getEnv("TEMP");
+		#elseif linux
+		// in linux systems there's this beautiful thing called a /tmp folder which actually removes shit when you reboot unlike windows
+		return "/tmp";
 		#else
-		// most non-windows os dont have a temp path, or if they do its not 100% compatible, so the user folder will be a fallback
+		//most non-windows os dont have a temp path, or if they do its not 100% compatible, so the user folder will be a fallback
 		return Sys.getEnv("HOME");
 		#end
 	}

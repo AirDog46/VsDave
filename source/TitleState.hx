@@ -301,7 +301,7 @@ class TitleState extends MusicBeatState
 
 		if (pressedEnter && !transitioning && skippedIntro)
 		{
-			titleText.animation.play('press');
+			if (titleText != null) titleText.animation.play('press');
 
 			FlxG.camera.flash(FlxColor.WHITE, 0.5);
 			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);

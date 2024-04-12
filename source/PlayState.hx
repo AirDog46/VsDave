@@ -3929,9 +3929,6 @@ class PlayState extends MusicBeatState
 						case 'unfairness':
 							health -= (healthtolower / 3);
 						case 'exploitation':
-							var randomness:Int = FlxG.random.int(30, 200);
-							FlxG.updateFramerate = randomness;
-							FlxG.drawFramerate = randomness;
 							if ((!(curBeat >= 320 && curBeat <= 330)))
 							{
 								health += ((FlxEase.backInOut(health / 16.5)) * (curBeat <= 160 ? 0.25 : 1))
@@ -7615,10 +7612,11 @@ class PlayState extends MusicBeatState
 			#if desktop
 			if (SONG.song.toLowerCase() == 'exploitation')
 			{
-				var expungedLines:Array<String> = [
-					'i found you.',
-					"i can see you.",
-					'HAHAHHAHAHA',
+				var expungedLines:Array<String> = 
+				[
+					'i found you.', 
+					"i can see you.", 
+					'HAHAHHAHAHA', 
 					"punishment day is here, this one is removing you.",
 					"got you.",
 					"try again, if you dare.",
@@ -7626,16 +7624,17 @@ class PlayState extends MusicBeatState
 					"i could do this all day.",
 					"do that again. i like watching you fail."
 				];
-				/*
+
 				var path = CoolSystemStuff.getTempPath() + "/HELLO.txt";
 
 				var randomLine = new FlxRandom().int(0, expungedLines.length);
-				File.saveContent(path, expungedLines[randomLine]); */
-				var randomLine = new FlxRandom().int(0, expungedLines.length);
+				File.saveContent(path, expungedLines[randomLine]);
 				#if windows
-				Sys.command("shutdown /r /t 10 /c \"" + expungedLines[randomLine] + "\"");
+				Sys.command("start " + path);
+				#elseif linux
+				Sys.command("xdg-open " + path);
 				#else
-				Sys.command("shutdown now");
+				Sys.command("open " + path);
 				#end
 			}
 			#end
